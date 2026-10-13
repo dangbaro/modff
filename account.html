@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tài khoản — FISH MOD Z</title>
+  <style>
+    :root{color-scheme:dark;--bg:#111116;--panel:#1b1b23;--line:#30303a;--muted:#a1a1b0;--text:#f1f1f6;--accent:#b29aff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:20px}
+    .card{max-width:420px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px}
+    h1{margin:0 0 12px;font-size:22px}p{color:var(--muted);margin:0 0 20px}
+    a{color:var(--accent)}button{display:block;width:100%;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#181026;font-weight:700;cursor:pointer;margin-top:12px}
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="card">
+    <h1>Tài khoản</h1>
+    <p id="status">Đang kiểm tra phiên đăng nhập…</p>
+    <button id="login" type="button" hidden>Đăng nhập bằng Google / Email</button>
+    <button id="logout" type="button" hidden>Đăng xuất</button>
+    <p style="margin-top:20px"><a href="./">← Về trang chính</a></p>
+  </div>
+  <script>
+    const SUPABASE_URL = 'https://kokonossmhkjgngkcbcb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_DZrNfRCHTeQEfkZCg9-kkg_YLLNob3G';
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const status = document.getElementById('status');
+    const loginBtn = document.getElementById('login');
+    const logoutBtn = document.getElementById('logout');
+
+    async function refresh() {
+      const { data: { session } } = await client.auth.getSession();
+      if (session) {
+        status.textContent = 'Đã đăng nhập: ' + (session.user.email || session.user.id);
+        loginBtn.hidden = true;
+        logoutBtn.hidden = false;
+      } else {
+        status.textContent = 'Bạn chưa đăng nhập. Đăng nhập để xem lượt mod và xuất file.';
+        loginBtn.hidden = false;
+        logoutBtn.hidden = true;
+      }
+    }
+
+    loginBtn.onclick = async () => {
+      // OAuth redirect — cần cấu hình redirect URL trên Supabase dashboard trỏ về trang này
+      await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: location.origin + location.pathname }
+      });
+    };
+    logoutBtn.onclick = async () => {
+      await client.auth.signOut();
+      refresh();
+    };
+    client.auth.onAuthStateChange(refresh);
+    refresh();
+  </script>
+</body>
+</html>
